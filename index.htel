@@ -1,1 +1,154 @@
-67011211008
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บันทึกการเทรดอย่างง่าย (Simple Trading Journal)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; }
+        
+        /* กล่องแสดงสถิติ */
+        .stats { display: flex; justify-content: space-around; background: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 25px; font-weight: bold; font-size: 18px; }
+        
+        /* ฟอร์มกรอกข้อมูล */
+        .form-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        input, select, button { padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; outline: none; }
+        input[type="text"], input[type="number"] { flex: 1; min-width: 120px; }
+        button { background: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; padding: 12px 20px; transition: 0.3s; }
+        button:hover { background: #218838; }
+        
+        /* ตารางสถิติ */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 15px; text-align: center; border-bottom: 1px solid #ddd; }
+        th { background-color: #f8f9fa; color: #333; }
+        
+        /* สีของกำไร/ขาดทุน */
+        .profit { color: #28a745; font-weight: bold; }
+        .loss { color: #dc3545; font-weight: bold; }
+        
+        /* ปุ่มลบ */
+        .delete-btn { background: #dc3545; padding: 6px 12px; border-radius: 4px; font-size: 13px; }
+        .delete-btn:hover { background: #c82333; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📈 บันทึกสถิติการเทรด</h1>
+
+    <!-- Dashboard แสดงผลรวม -->
+    <div class="stats">
+        <div>จำนวนเทรด: <span id="total-trades">0</span> ครั้ง</div>
+        <div>Win Rate: <span id="win-rate">0</span>%</div>
+        <div>P/L รวม: $<span id="total-pnl">0.00</span></div>
+    </div>
+
+    <!-- ฟอร์มเพิ่มข้อมูล -->
+    <form id="trade-form">
+        <div class="form-group">
+            <input type="date" id="date" required>
+            <input type="text" id="asset" placeholder="สินทรัพย์ (เช่น BTC, XAUUSD)" required>
+            <select id="type">
+                <option value="Buy">Buy (Long)</option>
+                <option value="Sell">Sell (Short)</option>
+            </select>
+            <input type="number" id="pnl" placeholder="กำไร/ขาดทุน ($)" step="0.01" required>
+            <button type="submit">➕ บันทึกเทรด</button>
+        </div>
+    </form>
+
+    <!-- ตารางประวัติการเทรด -->
+    <table>
+        <thead>
+            <tr>
+                <th>วันที่</th>
+                <th>สินทรัพย์</th>
+                <th>สถานะ</th>
+                <th>กำไร / ขาดทุน</th>
+                <th>ลบ</th>
+            </tr>
+        </thead>
+        <tbody id="trade-list">
+            <!-- ข้อมูลจะถูกเพิ่มเข้ามาตรงนี้ -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // โหลดข้อมูลจาก Local Storage หรือสร้างอาร์เรย์ว่าง
+    let trades = JSON.parse(localStorage.getItem('trades')) || [];
+
+    const tradeForm = document.getElementById('trade-form');
+    const tradeList = document.getElementById('trade-list');
+
+    // ฟังก์ชันคำนวณสถิติรวม
+    function updateStats() {
+        const totalTrades = trades.length;
+        const winningTrades = trades.filter(t => t.pnl > 0).length;
+        const totalPnL = trades.reduce((acc, curr) => acc + parseFloat(curr.pnl), 0);
+        
+        const winRate = totalTrades === 0 ? 0 : ((winningTrades / totalTrades) * 100).toFixed(2);
+
+        document.getElementById('total-trades').innerText = totalTrades;
+        document.getElementById('win-rate').innerText = winRate;
+        
+        const pnlElement = document.getElementById('total-pnl');
+        pnlElement.innerText = totalPnL.toFixed(2);
+        pnlElement.className = totalPnL >= 0 ? 'profit' : 'loss';
+    }
+
+    // ฟังก์ชันแสดงข้อมูลในตาราง
+    function renderTrades() {
+        tradeList.innerHTML = '';
+        trades.forEach((trade, index) => {
+            const row = document.createElement('tr');
+            const pnlClass = trade.pnl >= 0 ? 'profit' : 'loss';
+            const sign = trade.pnl >= 0 ? '+' : '';
+            
+            row.innerHTML = `
+                <td>${trade.date}</td>
+                <td><strong>${trade.asset}</strong></td>
+                <td>${trade.type}</td>
+                <td class="${pnlClass}">${sign}${trade.pnl}</td>
+                <td><button class="delete-btn" onclick="deleteTrade(${index})">🗑️</button></td>
+            `;
+            tradeList.appendChild(row);
+        });
+        updateStats();
+    }
+
+    // ฟังก์ชันลบข้อมูล
+    function deleteTrade(index) {
+        if(confirm("ต้องการลบประวัติการเทรดนี้ใช่หรือไม่?")) {
+            trades.splice(index, 1);
+            localStorage.setItem('trades', JSON.stringify(trades));
+            renderTrades();
+        }
+    }
+
+    // เมื่อกดปุ่มบันทึกเทรด
+    tradeForm.addEventListener('submit', function(e) {
+        e.preventDefault(); // ป้องกันเว็บโหลดใหม่
+        
+        const newTrade = {
+            date: document.getElementById('date').value,
+            asset: document.getElementById('asset').value.toUpperCase(),
+            type: document.getElementById('type').value,
+            pnl: parseFloat(document.getElementById('pnl').value).toFixed(2)
+        };
+
+        trades.push(newTrade);
+        localStorage.setItem('trades', JSON.stringify(trades)); // เซฟลงเบราว์เซอร์
+        
+        tradeForm.reset();
+        renderTrades();
+    });
+
+    // แสดงผลข้อมูลทันทีเมื่อเปิดหน้าเว็บ
+    renderTrades();
+</script>
+
+</body>
+</html>
