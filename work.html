@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scopus Data Visualization - Document Types (2025)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f0f4f8; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+        }
+        h1 { 
+            color: #2c3e50; 
+            font-size: 20px; 
+            margin-bottom: 5px;
+        }
+        p {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📊 สัดส่วนประเภทของผลงานวิจัยจาก Scopus</h1>
+    <p>ข้อมูลรวม 600 รายการ จากปี 2025</p>
+    
+    <div class="chart-container">
+        <canvas id="scopusChart"></canvas>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('scopusChart').getContext('2d');
+    
+    // ข้อมูลที่วิเคราะห์จากไฟล์ CSV ของคุณ
+    const documentTypes = ['Article', 'Conference paper', 'Review', 'Note'];
+    const documentCounts = [308, 289, 2, 1];
+
+    new Chart(ctx, {
+        type: 'doughnut', // ใช้กราฟโดนัท
+        data: {
+            labels: documentTypes,
+            datasets: [{
+                label: ' จำนวนงานวิจัย (เรื่อง)',
+                data: documentCounts,
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.7)', // ฟ้า
+                    'rgba(255, 99, 132, 0.7)', // ชมพู/แดง
+                    'rgba(255, 206, 86, 0.7)', // เหลือง
+                    'rgba(75, 192, 192, 0.7)'  // เขียว
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
